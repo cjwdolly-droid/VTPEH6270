@@ -43,8 +43,8 @@ Project files and deliverables are organized in this repository, including:
 - Scripts for data simulation
 - Output files (Figures & Reports)
 
-## AI tool disclosure (if used)
+## AI tool disclosure
 ChatGPT was used to assist with wording, organization, and troubleshooting during the development of this project and repository documentation. The analysis design, code execution, and final decisions were completed by the author.
 
-## References/citations (as relevant)
+## References/citations
 New York State Department of Health. Behavioral Risk Factor Surveillance System (BRFSS) Survey Data 2023. Available from the New York State Health Data website.
