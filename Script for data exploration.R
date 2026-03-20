@@ -6,7 +6,7 @@ download.file("https://health.data.ny.gov/download/tk4g-wdfe/application%2Fx-zip
 unzip(temp, "NYSDOH_BRFSS_SurveyData_2023.csv")
 brfss <- read.csv("NYSDOH_BRFSS_SurveyData_2023.csv", header=T)
 
-# create a subset containing right variables
+# create a subset containing only eight variables
 brfss_sub <- brfss %>%
   select(
     PA3MIN_,
