@@ -1,0 +1,143 @@
+---
+title: "VTPEH 6270 - Check Point 06"
+subtitle: "Basic R Skills"
+author: "Jiawen Chen"
+date: "`r Sys.Date()`"
+editor_options:
+  chunk_output_type: console
+output:
+  pdf_document:
+    toc: true
+    toc_depth: 1
+    number_sections: true
+urlcolor: blue
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+
+```
+
+# Introduction
+
+## Research Question
+
+Is physical activity associated with body weight in New York State after adjusting for age, sex and income?
+
+## Scientific Plausibility and Context
+
+Previous studies have found a negative relationship between physical activity and body weight.^1,2 A Body Mass Index (BMI) greater than 30 is considered obesity, and a BMI of 40 or higher is called severe obesity.^2 People who exercise more tend to have lower BMI and less risk of obesity.^1,2 In contrast, being inactive is associated with higher MBI and increases the risk of obesity.^1,2
+
+At the same time, body weight is also influenced by other factors such as age, sex and income.^3 These factors may affect both physical activity and body weight, which means they can influence the relationship between them. Therefore, it is important to adjust for these variables when studying the association. This study examines whether physical activity is still associated with body weight after accounting for age, sex, and income among adults in New York State.
+
+Citations:
+1. Mageit M, Alhabib MY, Alshamrani M, et al. The Association Between Physical Activity and Obesity: A Systematic Review. Cureus. 2025;17(12):e99068. Published 2025 Dec 12. doi:10.7759/cureus.99068
+2. JQ, P. (2023). Definitions, classification, and epidemiology of Obesity. National Center for Biotechnology Information. https://pubmed.ncbi.nlm.nih.gov/25905390/
+3. Lee, A., Cardel, M., & Donahoo, W. (2019, October 12). Social and environmental factors influencing obesity. Endotext [Internet]. https://www.ncbi.nlm.nih.gov/books/NBK278977/ 
+
+# Material & Methods
+
+## Data
+
+This project uses data from the 2023 New York State Behavioral Risk Factor Surveillance System (BRFSS), which is conducted by the New York State Department of Health in collaboration with the Centers for Disease Control and Prevention. The BRFSS surveys non-institutionalized adults aged 18 years and older using telephone interviews. The study population includes adults living in New York State, and the data were collected throughout 2023. The dataset contains information about health behaviors, health status, and demographic characteristics and is publicly available through HEALTH.DATA.NY.GOV.
+
+```{r, results='hide'}
+
+# Set working directory
+setwd("~/Desktop/MPH R training")
+
+#Load packages
+library(dplyr)
+library(janitor)
+library(ggplot2)
+library(knitr)
+
+# Load file
+brfss <- read.csv("NYSDOH_BRFSS_SurveyData_2023.csv")
+
+# Create new subset
+brfss_sub <- brfss %>%
+  select(PA3MIN_, WTKG3, GENHLTH, SEXVAR,
+    EDUCA, X_IMPRACE, X_AGE_G, INCOME3
+  )
+
+brfss_sub <- brfss_sub %>%
+  mutate(
+    weight_kg = WTKG3 / 100,
+    weekly_activity_hr = PA3MIN_ / 60
+    ) %>%
+  filter(!is.na(weight_kg), !is.na(SEXVAR), weekly_activity_hr < 168)
+
+# Preview the data
+str(brfss_sub)
+
+```
+
+## Statistical Analyses
+
+```{r}
+
+brfss_sub$SEXVAR <- relevel(factor(brfss_sub$SEXVAR), ref = "Female")
+brfss_sub$X_AGE_G <- relevel(factor(brfss_sub$X_AGE_G), ref = "Age 18 to 24")
+brfss_sub$INCOME3 <- relevel(factor(brfss_sub$INCOME3), ref = "Less than $10,000")
+
+model1 <- lm(weight_kg ~ weekly_activity_hr + X_AGE_G + SEXVAR + INCOME3,
+             data = brfss_sub)
+
+summary(model1)
+
+# assumption check
+plot(model1, which = 1)
+
+```
+
+The residuals vs fitted plot showed no clear pattern and the red line was approximately flat, suggesting that the linearity and homoscedasticity assumptions were reasonably met.
+
+## Code
+
+All R code used for data cleaning, analysis, and visualization is available at:
+https://github.com/cjwdolly-droid/VTPEH6270--CP06.git
+
+# Results
+
+## Visualization
+
+```{r}
+
+# Boxplot by sex
+ggplot(brfss_sub, aes(x = SEXVAR, y = weight_kg)) +
+  geom_boxplot() +
+  labs(
+    title = "Plot 1: Body weight by sex",
+    x = "Sex",
+    y = "Body weight (kg)"
+  ) +
+  theme_minimal()
+
+# Boxplot by age group
+ggplot(brfss_sub, aes(x = X_AGE_G, y = weight_kg)) +
+  geom_boxplot() +
+  labs(
+    title = "Plot 2: Body weight by age group",
+    x = "Age group",
+    y = "Body weight (kg)"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+
+Plot 1 shows that median body weight was higher among males compared to females in New York State. Plot 2 shows that body weight generally increased with age, with the highest median weight observed in middle-aged groups (45–54), followed by a slight decrease in older age groups.
+
+## Statistical Analysis
+
+A total of 11,322 observations were included in the analysis. After adjusting for age, sex, and income, weekly physical activity was significantly associated with body weight. Specifically, each additional hour of physical activity per week was associated with a small decrease in body weight (slope = -0.025, p = 0.043). Sex was strongly associated with body weight, with males having significantly higher weight compared to females (slope = 15.50, p < 0.001). Age was also associated with body weight, with older age groups having higher weight compared to the reference group (18–24). Some income categories were significantly associated with body weight, although the pattern was not consistent across all groups. The model explained approximately 18.1% of the variation in body weight (R squared = 0.181). Model diagnostics suggested that the assumptions of linear regression were reasonably satisfied. The residuals vs fitted plot showed no strong pattern, indicating acceptable linearity and homoscedasticity.
+
+# Conclusions
+
+
+
+# AI Use Disclosure Statement
+
+I used ChatGPT to assist with code refinement and clarification of statistical interpretation. The tool was used to improve formatting of R code, troubleshoot errors, and refine wording of interpretation sections. All analyses, decisions regarding statistical methods, and final interpretations were reviewed and verified by me.
